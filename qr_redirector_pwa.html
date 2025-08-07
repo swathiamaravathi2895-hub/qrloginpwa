@@ -1,0 +1,90 @@
+/*
+📄 FILE 1: index.html (PWA 1 - QR Scanner App)
+This app scans QR codes, stores the URL, and redirects to the login page.
+*/
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QR Scanner</title>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    #reader {
+      width: 100%; max-width: 400px;
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 10px;
+    }
+    #status { margin-top: 15px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>🔍 QR Scanner</h1>
+  <p>Scan a certificate QR code</p>
+  <div id="reader"></div>
+  <div id="status">📷 Initializing camera...</div>
+
+  <script>
+    const statusEl = document.getElementById("status");
+    function onScanSuccess(decodedText) {
+      statusEl.textContent = `✅ QR Detected: ${decodedText}`;
+      if (window.qrAlreadyScanned) return;
+      window.qrAlreadyScanned = true;
+      sessionStorage.setItem("originalQRUrl", decodedText);
+      sessionStorage.setItem("qrScanTime", Date.now());
+      scanner.clear().then(() => {
+        window.location.href = "https://portal.mycompany.com/login";
+      });
+    }
+    function onScanFailure(error) {}
+    const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+    scanner.render(onScanSuccess, onScanFailure);
+  </script>
+</body>
+</html>
+
+
+/*
+📄 FILE 2: watcher.html (PWA 2 - Login Watcher)
+This page is opened manually or automatically after login. It checks if you're on "unit_list" and redirects to original QR URL.
+*/
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Watcher</title>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const currentUrl = window.location.href;
+      const targetUrl = sessionStorage.getItem("originalQRUrl");
+      const scanTime = parseInt(sessionStorage.getItem("qrScanTime") || "0");
+      const now = Date.now();
+
+      if (currentUrl.includes("unit_list") && targetUrl && now - scanTime < 5 * 60 * 1000) {
+        console.log("✅ Login detected. Redirecting to:", targetUrl);
+        sessionStorage.removeItem("originalQRUrl");
+        sessionStorage.removeItem("qrScanTime");
+        window.location.href = targetUrl;
+      } else {
+        document.body.innerHTML = `<h2>Waiting for login to complete...</h2><p>Current URL: ${currentUrl}</p>`;
+      }
+    });
+  </script>
+</head>
+<body>
+</body>
+</html>
