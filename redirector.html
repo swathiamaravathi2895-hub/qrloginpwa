@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Redirecting...</title>
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+  </style>
+</head>
+<body>
+  <p>🔐 Redirecting... please log in</p>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const targetUrl = params.get("url");
+    const savedUrl = sessionStorage.getItem("originalQRUrl");
+    const scanTime = parseInt(sessionStorage.getItem("qrScanTimestamp") || "0");
+    const now = Date.now();
+
+    if (targetUrl) {
+      sessionStorage.setItem("originalQRUrl", targetUrl);
+      sessionStorage.setItem("qrScanTimestamp", Date.now().toString());
+      window.location.href = "https://portal.mycompany.com/login";
+    } else if (savedUrl && now - scanTime < 5 * 60 * 1000) {
+      sessionStorage.removeItem("originalQRUrl");
+      sessionStorage.removeItem("qrScanTimestamp");
+      window.location.href = savedUrl;
+    } else {
+      document.body.innerHTML = "<h2>⚠️ No QR target found or session expired.</h2>";
+    }
+  </script>
+</body>
+</html>
