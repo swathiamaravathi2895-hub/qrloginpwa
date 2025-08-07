@@ -29,7 +29,7 @@
     if (targetUrl) {
       sessionStorage.setItem("originalQRUrl", targetUrl);
       sessionStorage.setItem("qrScanTimestamp", Date.now().toString());
-      window.location.href = "https://portal.mycompany.com/login";
+      window.location.href = "https://portal.pylonelectronics.com/login";
     } else if (savedUrl && now - scanTime < 5 * 60 * 1000) {
       sessionStorage.removeItem("originalQRUrl");
       sessionStorage.removeItem("qrScanTimestamp");
