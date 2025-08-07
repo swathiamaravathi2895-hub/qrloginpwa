@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Post Login Redirector</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f2f2f2;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
+    h1 { font-size: 20px; }
+    p { font-size: 14px; opacity: 0.7; }
+  </style>
+</head>
+<body>
+  <h1>🔒 Waiting for login...</h1>
+  <p>You'll be redirected to your certificate after login.</p>
+
+  <script>
+    const originalUrl = sessionStorage.getItem("originalQRUrl") || "";
+    const scanTime = parseInt(sessionStorage.getItem("qrScanTimestamp") || "0");
+
+    const validTimeWindow = 5 * 60 * 1000; // 5 mins
+    const isStillValid = (Date.now() - scanTime < validTimeWindow);
+
+    if (!originalUrl || !isStillValid) {
+      document.body.innerHTML = "<h1>❌ QR Session Expired</h1><p>Please rescan the code.</p>";
+      sessionStorage.clear();
+    } else {
+      const checkLoginInterval = setInterval(() => {
+        const urlPath = window.location.pathname;
+
+        if (urlPath.toLowerCase().includes("unit_list")) {
+          clearInterval(checkLoginInterval);
+          sessionStorage.removeItem("qrScanTimestamp");
+          setTimeout(() => {
+            window.location.href = originalUrl;
+          }, 500); // small delay for stability
+        }
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
